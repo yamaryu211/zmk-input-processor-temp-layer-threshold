@@ -1,0 +1,39 @@
+description: |
+  Temporary layer input processor with movement threshold.
+  Activates a layer only after cumulative movement exceeds a threshold.
+
+compatible: "zmk,input-processor-temp-layer-threshold"
+
+include: base.yaml
+
+properties:
+  "#input-processor-cells":
+    type: int
+    required: true
+    const: 3
+    description: |
+      Number of cells: layer index, timeout in ms, movement threshold
+
+  require-prior-idle-ms:
+    type: int
+    default: 0
+    description: |
+      Milliseconds of no key presses before activation is allowed
+
+  excluded-positions:
+    type: array
+    default: []
+    description: |
+      Key positions that won't deactivate the layer when pressed
+      while the layer is active
+
+  reset-timeout-ms:
+    type: int
+    default: 200
+    description: |
+      Milliseconds without movement before resetting accumulated movement
+
+input-processor-cells:
+  - layer
+  - timeout-ms
+  - threshold

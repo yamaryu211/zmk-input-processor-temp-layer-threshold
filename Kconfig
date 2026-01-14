@@ -1,0 +1,12 @@
+config ZMK_INPUT_PROCESSOR_TEMP_LAYER_THRESHOLD
+    bool "Enable threshold-based temporary layer input processor"
+    default y
+    depends on ZMK_POINTING
+
+if ZMK_INPUT_PROCESSOR_TEMP_LAYER_THRESHOLD
+
+config ZMK_INPUT_PROCESSOR_TEMP_LAYER_THRESHOLD_MAX_ACTION_EVENTS
+    int "Maximum number of layer action events"
+    default 16
+
+endif
