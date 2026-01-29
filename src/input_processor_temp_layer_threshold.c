@@ -25,6 +25,7 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 struct temp_layer_threshold_config {
     int16_t require_prior_idle_ms;
     int32_t reset_timeout_ms;
+    int32_t threshold;
     const uint16_t *excluded_positions;
     size_t num_positions;
 };
@@ -78,10 +79,10 @@ static void update_layer_state(struct temp_layer_threshold_state *state, bool ac
 
     state->is_active = activate;
     if (activate) {
-        zmk_keymap_layer_activate(state->toggle_layer, false);
+        zmk_keymap_layer_activate(state->toggle_layer);
         LOG_DBG("Layer %d activated (threshold)", state->toggle_layer);
     } else {
-        zmk_keymap_layer_deactivate(state->toggle_layer, false);
+        zmk_keymap_layer_deactivate(state->toggle_layer);
         state->threshold_reached = false;
         state->accumulated_movement = 0;
         LOG_DBG("Layer %d deactivated (threshold)", state->toggle_layer);
@@ -234,7 +235,7 @@ static int handle_event_dispatcher(const zmk_event_t *eh) {
 
 /* Driver Implementation */
 static int temp_layer_threshold_handle_event(const struct device *dev, struct input_event *event,
-                                             uint32_t param1, uint32_t param2, uint32_t param3,
+                                             uint32_t param1, uint32_t param2,
                                              struct zmk_input_processor_state *state) {
     if (param1 >= MAX_LAYERS) {
         LOG_ERR("Invalid layer index: %d", param1);
@@ -257,7 +258,7 @@ static int temp_layer_threshold_handle_event(const struct device *dev, struct in
     int64_t now = k_uptime_get();
 
     data->state.toggle_layer = param1;
-    data->state.current_threshold = param3;
+    data->state.current_threshold = cfg->threshold;
 
     /* Reset accumulated movement if timeout elapsed */
     if ((now - data->state.last_movement_timestamp) > cfg->reset_timeout_ms) {
@@ -279,14 +280,14 @@ static int temp_layer_threshold_handle_event(const struct device *dev, struct in
     } else if (should_quick_tap(cfg, data->state.last_tapped_timestamp, now)) {
         /* Quick tap prevention */
         should_activate = false;
-    } else if (param3 > 0 && !data->state.threshold_reached) {
+    } else if (cfg->threshold > 0 && !data->state.threshold_reached) {
         /* Threshold mode: check if threshold reached */
-        if (data->state.accumulated_movement >= param3) {
+        if (data->state.accumulated_movement >= cfg->threshold) {
             data->state.threshold_reached = true;
             should_activate = true;
-            LOG_DBG("Threshold %d reached with accumulated %d", param3, data->state.accumulated_movement);
+            LOG_DBG("Threshold %d reached with accumulated %d", cfg->threshold, data->state.accumulated_movement);
         }
-    } else if (param3 == 0) {
+    } else if (cfg->threshold == 0) {
         /* No threshold, activate immediately */
         should_activate = true;
     } else if (data->state.threshold_reached) {
@@ -353,6 +354,7 @@ ZMK_SUBSCRIPTION(processor_temp_layer_threshold, zmk_keycode_state_changed);
     static const struct temp_layer_threshold_config processor_temp_layer_threshold_config_##n = {  \
         .require_prior_idle_ms = DT_INST_PROP_OR(n, require_prior_idle_ms, 0),                     \
         .reset_timeout_ms = DT_INST_PROP_OR(n, reset_timeout_ms, 200),                             \
+        .threshold = DT_INST_PROP_OR(n, threshold, 0),                                             \
         .excluded_positions = excluded_positions_##n,                                              \
         .num_positions = DT_INST_PROP_LEN(n, excluded_positions),                                  \
     };                                                                                             \

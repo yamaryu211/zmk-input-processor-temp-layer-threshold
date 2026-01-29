@@ -10,9 +10,15 @@ properties:
   "#input-processor-cells":
     type: int
     required: true
-    const: 3
+    const: 2
     description: |
-      Number of cells: layer index, timeout in ms, movement threshold
+      Number of cells: layer index, timeout in ms
+
+  threshold:
+    type: int
+    default: 0
+    description: |
+      Movement threshold before layer activation. Set to 0 for immediate activation.
 
   require-prior-idle-ms:
     type: int
@@ -32,7 +38,7 @@ properties:
     default: 200
     description: |
       Milliseconds without movement before resetting accumulated movement
-  
+
   track-remainders:
     type: boolean
     description: |
@@ -41,4 +47,3 @@ properties:
 input-processor-cells:
   - layer
   - timeout-ms
-  - threshold
