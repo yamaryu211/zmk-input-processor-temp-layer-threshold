@@ -32,6 +32,11 @@ properties:
     default: 200
     description: |
       Milliseconds without movement before resetting accumulated movement
+  
+  track-remainders:
+    type: boolean
+    description: |
+      Whether to track remainders for this processor (required by ZMK)
 
 input-processor-cells:
   - layer
