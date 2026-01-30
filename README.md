@@ -32,7 +32,10 @@ In your keymap (`.keymap` or `.dtsi`):
 / {
     zip_temp_layer_threshold: zip_temp_layer_threshold {
         compatible = "zmk,input-processor-temp-layer-threshold";
-        #input-processor-cells = <3>;
+        #input-processor-cells = <2>;
+        
+        // Movement threshold before layer activation (e.g., 25 pixels)
+        threshold = <25>;
         
         // Key positions that won't deactivate the layer
         excluded-positions = <18 19 20>;
@@ -50,18 +53,26 @@ Then use it in your trackball listener:
 
 ```dts
 &trackball_listener {
-    // <layer_index timeout_ms threshold>
-    input-processors = <&zip_temp_layer_threshold 8 30000 20>;
+    // <layer_index timeout_ms>
+    input-processors = <&zip_temp_layer_threshold 8 30000>;
 };
 ```
 
-### Parameters
+### Parameters (input-processor-cells)
 
 | Parameter | Description |
 |-----------|-------------|
 | `layer_index` | Layer to activate (e.g., 8 for AML) |
 | `timeout_ms` | Deactivate layer after this many ms of no movement |
-| `threshold` | Cumulative movement required before activation (0 = immediate) |
+
+### Properties
+
+| Property | Default | Description |
+|----------|---------|-------------|
+| `threshold` | 0 | Cumulative movement required before activation (0 = immediate) |
+| `require-prior-idle-ms` | 0 | Milliseconds of no key presses before activation is allowed |
+| `excluded-positions` | [] | Key positions that won't deactivate the layer |
+| `reset-timeout-ms` | 200 | Milliseconds without movement before resetting accumulated movement |
 
 ## License
 
