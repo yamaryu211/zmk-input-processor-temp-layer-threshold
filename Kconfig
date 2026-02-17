@@ -2,6 +2,7 @@ config ZMK_INPUT_PROCESSOR_TEMP_LAYER_THRESHOLD
     bool "Enable threshold-based temporary layer input processor"
     default y
     depends on ZMK_POINTING
+    depends on (!ZMK_SPLIT || ZMK_SPLIT_ROLE_CENTRAL)
 
 if ZMK_INPUT_PROCESSOR_TEMP_LAYER_THRESHOLD
 
