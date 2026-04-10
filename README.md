@@ -4,6 +4,10 @@ A ZMK module that provides a temporary layer input processor with movement thres
 
 ZMKモジュール：移動量の閾値をサポートした一時レイヤー入力プロセッサ。累積マウス移動量が指定した閾値を超えたときにのみレイヤーが有効になります。
 
+For ZMK 0.4.x, use the `feat/zmk0.4` branch. The `main` branch remains for ZMK 0.3.x compatibility.
+
+ZMK 0.4.x では `feat/zmk0.4` ブランチを使用してください。`main` ブランチは引き続き ZMK 0.3.x 互換向けです。
+
 ## Features / 機能
 
 - **Movement Threshold**: Layer activates only after cumulative movement exceeds threshold  
@@ -28,7 +32,7 @@ manifest:
   projects:
     - name: zmk-input-processor-temp-layer-threshold
       remote: yamaryu211
-      revision: main
+      revision: feat/zmk0.4
 ```
 
 Add to your `.conf` file:  
