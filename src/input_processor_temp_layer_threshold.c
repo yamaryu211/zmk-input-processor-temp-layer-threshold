@@ -49,6 +49,14 @@ struct temp_layer_threshold_data {
 /* Static Work Queue Items */
 static struct k_work_delayable layer_disable_works[MAX_LAYERS];
 
+struct layer_action_work_ctx {
+    struct k_work work;
+    const struct device *dev;
+};
+
+static void layer_action_work_cb(struct k_work *work);
+static struct layer_action_work_ctx layer_action_work_ctx_inst;
+
 /* Position Search */
 static bool position_is_excluded(const struct temp_layer_threshold_config *config, uint32_t position) {
     if (!config->excluded_positions || !config->num_positions) {
@@ -98,7 +106,13 @@ K_MSGQ_DEFINE(temp_layer_threshold_action_msgq, sizeof(struct layer_state_action
               CONFIG_ZMK_INPUT_PROCESSOR_TEMP_LAYER_THRESHOLD_MAX_ACTION_EVENTS, 4);
 
 static void layer_action_work_cb(struct k_work *work) {
-    const struct device *dev = DEVICE_DT_INST_GET(0);
+    struct layer_action_work_ctx *ctx =
+        CONTAINER_OF(work, struct layer_action_work_ctx, work);
+    const struct device *dev = ctx->dev;
+    if (!dev) {
+        LOG_ERR("layer_action_work: dev is NULL");
+        return;
+    }
     struct temp_layer_threshold_data *data = (struct temp_layer_threshold_data *)dev->data;
 
     int ret = k_mutex_lock(&data->lock, K_MSEC(10));
@@ -122,7 +136,7 @@ static void layer_action_work_cb(struct k_work *work) {
     k_mutex_unlock(&data->lock);
 }
 
-static K_WORK_DEFINE(layer_action_work, layer_action_work_cb);
+static K_WORK_DEFINE(layer_action_work_item, layer_action_work_cb);
 
 /* Work Queue Callback */
 static void layer_disable_callback(struct k_work *work) {
@@ -132,7 +146,7 @@ static void layer_disable_callback(struct k_work *work) {
     struct layer_state_action action = {.layer = layer_index, .activate = false};
 
     k_msgq_put(&temp_layer_threshold_action_msgq, &action, K_MSEC(10));
-    k_work_submit(&layer_action_work);
+    k_work_submit(&layer_action_work_ctx_inst.work);
 }
 
 /* Event Handlers */
@@ -302,7 +316,8 @@ static int temp_layer_threshold_handle_event(const struct device *dev, struct in
         if (ret < 0) {
             LOG_ERR("Failed to enqueue action to enable layer %d (%d)", param1, ret);
         } else {
-            k_work_submit(&layer_action_work);
+            layer_action_work_ctx_inst.dev = dev;
+            k_work_submit(&layer_action_work_ctx_inst.work);
         }
     }
 
@@ -323,6 +338,10 @@ static int temp_layer_threshold_init(const struct device *dev) {
     for (int i = 0; i < MAX_LAYERS; i++) {
         k_work_init_delayable(&layer_disable_works[i], layer_disable_callback);
     }
+
+    /* Initialize the shared work item with this device */
+    layer_action_work_ctx_inst.dev = dev;
+    k_work_init(&layer_action_work_ctx_inst.work, layer_action_work_cb);
 
     return 0;
 }
