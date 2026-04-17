@@ -101,7 +101,7 @@ static void layer_action_work_cb(struct k_work *work) {
     const struct device *dev = DEVICE_DT_INST_GET(0);
     struct temp_layer_threshold_data *data = (struct temp_layer_threshold_data *)dev->data;
 
-    int ret = k_mutex_lock(&data->lock, K_FOREVER);
+    int ret = k_mutex_lock(&data->lock, K_MSEC(10));
     if (ret < 0) {
         LOG_ERR("Error locking for updating %d", ret);
         return;
@@ -138,7 +138,7 @@ static void layer_disable_callback(struct k_work *work) {
 /* Event Handlers */
 static int handle_layer_state_changed(const struct device *dev, const zmk_event_t *eh) {
     struct temp_layer_threshold_data *data = (struct temp_layer_threshold_data *)dev->data;
-    int ret = k_mutex_lock(&data->lock, K_FOREVER);
+    int ret = k_mutex_lock(&data->lock, K_MSEC(10));
     if (ret < 0) {
         return ret;
     }
@@ -164,7 +164,7 @@ static int handle_position_state_changed(const struct device *dev, const zmk_eve
     }
 
     struct temp_layer_threshold_data *data = (struct temp_layer_threshold_data *)dev->data;
-    int ret = k_mutex_lock(&data->lock, K_FOREVER);
+    int ret = k_mutex_lock(&data->lock, K_MSEC(10));
     if (ret < 0) {
         return ret;
     }
@@ -191,7 +191,7 @@ static int handle_keycode_state_changed(const struct device *dev, const zmk_even
 
     struct temp_layer_threshold_data *data = (struct temp_layer_threshold_data *)dev->data;
 
-    int ret = k_mutex_lock(&data->lock, K_FOREVER);
+    int ret = k_mutex_lock(&data->lock, K_MSEC(10));
     if (ret < 0) {
         return ret;
     }
@@ -249,7 +249,7 @@ static int temp_layer_threshold_handle_event(const struct device *dev, struct in
 
     struct temp_layer_threshold_data *data = (struct temp_layer_threshold_data *)dev->data;
 
-    int ret = k_mutex_lock(&data->lock, K_FOREVER);
+    int ret = k_mutex_lock(&data->lock, K_MSEC(10));
     if (ret < 0) {
         return ret;
     }
